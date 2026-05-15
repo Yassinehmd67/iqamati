@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: sans-serif;
+  background: #f8fafc;
+}
+
+.container {
+  max-width: 1280px;
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+input,
+select,
+textarea {
+  outline: none;
+}
+
+img {
+  user-select: none;
+}
