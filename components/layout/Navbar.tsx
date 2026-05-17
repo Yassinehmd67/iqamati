@@ -6,7 +6,6 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-200">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="bg-blue-600 text-white p-2 rounded-xl">🏢</div>
 
@@ -16,13 +15,19 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Actions */}
         <div className="flex items-center gap-4">
           <Link
             href="/search"
             className="hidden md:block text-slate-600 font-bold hover:text-blue-600 transition"
           >
             البحث
+          </Link>
+
+          <Link
+            href="/auth"
+            className="hidden md:block text-slate-600 font-bold hover:text-blue-600 transition"
+          >
+            دخول
           </Link>
 
           <Link
