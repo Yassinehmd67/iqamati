@@ -25,7 +25,7 @@ export default function SignupPage() {
       return;
     }
 
-    alert("تم إنشاء الحساب. تحقق من بريدك الإلكتروني.");
+    window.location.href = "/dashboard";
   }
 
   return (
