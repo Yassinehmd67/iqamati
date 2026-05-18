@@ -4,29 +4,28 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 
-type Listing = {
+interface Listing {
   id: string;
   title: string;
   city: string;
   district: string;
-  price: number | null;
-  status: string;
-};
+  price: number;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
-  const [listings, setListings] = useState<Listing[]>([]);
 
   const [title, setTitle] = useState("");
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
   const [price, setPrice] = useState("");
 
+  const [listings, setListings] = useState<Listing[]>([]);
+
   useEffect(() => {
-    async function init() {
+    async function checkUser() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -36,46 +35,45 @@ export default function DashboardPage() {
         return;
       }
 
-      setUserId(user.id);
       setEmail(user.email ?? null);
 
-      fetchListings(user.id);
+      loadListings(user.id);
     }
 
-    init();
+    checkUser();
   }, [router]);
 
-  async function fetchListings(currentUserId: string) {
+  async function loadListings(userId: string) {
     const { data, error } = await supabase
       .from("listings")
-      .select("id,title,city,district,price,status")
-      .eq("user_id", currentUserId)
+      .select("*")
+      .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
     if (error) {
-      alert(error.message);
+      console.log(error.message);
       return;
     }
 
-    setListings(data ?? []);
+    setListings(data || []);
   }
 
   async function createListing() {
-    if (!userId) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!title || !city || !district) {
-      alert("أدخل عنوان العرض، المدينة، والحي");
+    if (!user) {
+      router.push("/auth");
       return;
     }
 
     const { error } = await supabase.from("listings").insert({
-      user_id: userId,
+      user_id: user.id,
       title,
       city,
       district,
-      price: price ? Number(price) : null,
-      category: "property",
-      type: "بيع",
+      price: Number(price),
       status: "active",
     });
 
@@ -84,12 +82,29 @@ export default function DashboardPage() {
       return;
     }
 
+    alert("تم نشر العرض");
+
     setTitle("");
     setCity("");
     setDistrict("");
     setPrice("");
 
-    fetchListings(userId);
+    loadListings(user.id);
+  }
+
+  async function deleteListing(id: string) {
+    const confirmDelete = confirm("هل تريد حذف هذا العرض؟");
+
+    if (!confirmDelete) return;
+
+    const { error } = await supabase.from("listings").delete().eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setListings((current) => current.filter((listing) => listing.id !== id));
   }
 
   async function logout() {
@@ -98,44 +113,55 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-5xl mx-auto space-y-8">
-        <div className="bg-white rounded-3xl border border-slate-200 p-8">
-          <h1 className="text-3xl font-bold mb-4">لوحة التحكم</h1>
+        {/* HEADER */}
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">لوحة التحكم</h1>
 
-          <p className="text-slate-500 mb-8">مرحباً بك: {email}</p>
+              <p className="text-slate-500">مرحباً بك: {email}</p>
+            </div>
 
-          <button
-            onClick={logout}
-            className="bg-red-500 text-white px-6 py-3 rounded-2xl font-bold"
-          >
-            تسجيل الخروج
-          </button>
+            <button
+              onClick={logout}
+              className="bg-red-500 text-white px-6 py-3 rounded-2xl font-bold"
+            >
+              تسجيل الخروج
+            </button>
+          </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200 p-8">
-          <h2 className="text-2xl font-bold mb-6">إضافة عرض جديد</h2>
+        {/* CREATE LISTING */}
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8">
+          <h2 className="text-3xl font-bold mb-8 text-center">
+            إضافة عرض جديد
+          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4 max-w-xl mx-auto">
             <input
+              type="text"
               placeholder="عنوان العرض"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="border border-slate-200 rounded-2xl px-4 py-3"
+              className="w-full border border-slate-200 rounded-2xl px-4 py-4"
             />
 
             <input
+              type="text"
               placeholder="المدينة"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="border border-slate-200 rounded-2xl px-4 py-3"
+              className="w-full border border-slate-200 rounded-2xl px-4 py-4"
             />
 
             <input
+              type="text"
               placeholder="الحي"
               value={district}
               onChange={(e) => setDistrict(e.target.value)}
-              className="border border-slate-200 rounded-2xl px-4 py-3"
+              className="w-full border border-slate-200 rounded-2xl px-4 py-4"
             />
 
             <input
@@ -143,39 +169,50 @@ export default function DashboardPage() {
               placeholder="السعر"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="border border-slate-200 rounded-2xl px-4 py-3"
+              className="w-full border border-slate-200 rounded-2xl px-4 py-4"
             />
-          </div>
 
-          <button
-            onClick={createListing}
-            className="mt-6 bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold"
-          >
-            نشر العرض
-          </button>
+            <button
+              onClick={createListing}
+              className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg"
+            >
+              نشر العرض
+            </button>
+          </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200 p-8">
-          <h2 className="text-2xl font-bold mb-6">عروضي</h2>
+        {/* MY LISTINGS */}
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8">
+          <h2 className="text-3xl font-bold mb-8 text-center">عروضي</h2>
 
           {listings.length === 0 ? (
-            <p className="text-slate-500">لا توجد عروض بعد.</p>
+            <p className="text-center text-slate-400">لا توجد عروض بعد</p>
           ) : (
-            <div className="space-y-4">
+            <div className="grid gap-4">
               {listings.map((listing) => (
                 <div
                   key={listing.id}
-                  className="border border-slate-200 rounded-2xl p-4 flex justify-between"
+                  className="border border-slate-200 rounded-2xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
                 >
                   <div>
-                    <h3 className="font-bold">{listing.title}</h3>
+                    <h3 className="font-bold text-xl mb-2">{listing.title}</h3>
+
                     <p className="text-slate-500">
                       {listing.city} — {listing.district}
                     </p>
                   </div>
 
-                  <div className="font-bold text-blue-600">
-                    {listing.price ? `${listing.price} د.م` : "بدون سعر"}
+                  <div className="flex items-center gap-4">
+                    <div className="font-bold text-blue-600 text-lg">
+                      {listing.price} د.م
+                    </div>
+
+                    <button
+                      onClick={() => deleteListing(listing.id)}
+                      className="text-red-500 font-bold"
+                    >
+                      حذف
+                    </button>
                   </div>
                 </div>
               ))}
