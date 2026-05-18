@@ -1,11 +1,20 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-
 import ListingCard from "@/components/listings/ListingCard";
 
-import { mockListings } from "@/data/mock-listings";
+import { createClient } from "@supabase/supabase-js";
 
-export default function SearchPage() {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+export default async function SearchPage() {
+  const { data: listings } = await supabase
+    .from("listings")
+    .select("*")
+    .order("created_at", { ascending: false });
+
   return (
     <main className="min-h-screen bg-slate-50">
       <Navbar />
@@ -59,11 +68,17 @@ export default function SearchPage() {
 
           {/* Listings */}
           <div className="lg:col-span-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {mockListings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
-              ))}
-            </div>
+            {listings?.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-200 p-10 text-center">
+                <p className="text-slate-400 text-lg">لا توجد عروض حالياً</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {listings?.map((listing) => (
+                  <ListingCard key={listing.id} listing={listing} />
+                ))}
+              </div>
+            )}
 
             {/* Smart Request */}
             <div className="bg-blue-600 text-white rounded-[2rem] p-10 text-center mt-10">
