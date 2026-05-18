@@ -6,6 +6,7 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
       <div className="container mx-auto px-4 py-3 flex flex-col md:flex-row md:h-16 md:items-center md:justify-between gap-3">
+        {/* LOGO */}
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="bg-blue-600 text-white p-2 rounded-xl">🏢</div>
@@ -16,17 +17,33 @@ export default function Navbar() {
             </span>
           </Link>
 
+          {/* MOBILE LOGIN */}
           <Link href="/auth" className="md:hidden text-blue-600 font-bold">
             دخول
           </Link>
         </div>
 
-        <div className="flex items-center justify-between md:justify-end gap-3">
+        {/* NAVIGATION */}
+        <div className="flex items-center justify-between md:justify-end gap-3 flex-wrap">
+          <Link
+            href="/"
+            className="text-slate-600 font-bold hover:text-blue-600 transition text-sm md:text-base"
+          >
+            الرئيسية
+          </Link>
+
           <Link
             href="/search"
             className="text-slate-600 font-bold hover:text-blue-600 transition text-sm md:text-base"
           >
             البحث
+          </Link>
+
+          <Link
+            href="/dashboard"
+            className="text-slate-600 font-bold hover:text-blue-600 transition text-sm md:text-base"
+          >
+            لوحة التحكم
           </Link>
 
           <Link
@@ -37,7 +54,7 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/publish"
+            href="/dashboard"
             className="bg-blue-600 text-white px-4 md:px-6 py-2.5 rounded-2xl font-bold hover:bg-blue-700 transition text-sm md:text-base"
           >
             انشر عرضك 🚀
